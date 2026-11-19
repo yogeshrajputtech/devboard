@@ -1,19 +1,23 @@
-# Goal: Build the image for DevBoard Frontend and Push to Docker Hub
+# Goal: Build the DevBoard Frontend image and Push to Docker Hub
+
 name: CI
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout Repository
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Check Repository Files
+      # Step 2: Debug Repository Files
+      - name: Debug Repository Files
         run: |
           echo "Current Directory:"
           pwd
@@ -21,15 +25,26 @@ jobs:
           echo "Repository Files:"
           ls -lah
 
-          echo "Find Dockerfile:"
-          find . -iname '*dockerfile*' -type f
+          echo "Dockerfile Locations:"
+          find . -type f -iname 'Dockerfile' -print
 
+          echo "Checking Root Dockerfile:"
+          if [ -f "./Dockerfile" ]; then
+            echo "Dockerfile FOUND"
+            echo "Dockerfile Content:"
+            cat ./Dockerfile
+          else
+            echo "Dockerfile NOT FOUND in root directory"
+          fi
+
+      # Step 3: Docker Hub Login
       - name: Docker Setup [Login]
         uses: docker/login-action@v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # Step 4: Build and Push Docker Image
       - name: Docker Build and Push
         uses: docker/build-push-action@v7
         with:
